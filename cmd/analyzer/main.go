@@ -30,10 +30,17 @@ func main() {
 	start := time.Now()
 
 	// consumers init
-	preview := preview.Preview{Limit: 3}
-	countEvents := CountEvents{Counts: 0}
-	topK := topk.TopK{Events: map[string]int{}}
-	topProduct := topk.TopProduct{Products: map[int64]int64{}}
+	preview := &preview.Preview{Limit: 3}
+	countEvents := &CountEvents{Counts: 0}
+	topK := &topk.TopK{Events: make(map[string]int)}
+	topProduct := &topk.TopProduct{Products: make(map[int64]int64)}
+
+	consumers := []parser.EventConsumer{
+		preview,
+		countEvents,
+		topK,
+		topProduct,
+	}
 
 	file, err := os.Open(path)
 	if err != nil {
@@ -43,7 +50,7 @@ func main() {
 	defer file.Close()
 
 	// pass consumer ke Stream
-	err = parser.Stream(file, &preview, &countEvents, &topK, &topProduct)
+	err = parser.Stream(file, consumers...)
 	if err != nil {
 		log.Fatal(err)
 	}
