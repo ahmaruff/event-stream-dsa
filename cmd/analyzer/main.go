@@ -33,6 +33,7 @@ func main() {
 	preview := preview.Preview{Limit: 3}
 	countEvents := CountEvents{Counts: 0}
 	topK := topk.TopK{Events: map[string]int{}}
+	topProduct := topk.TopProduct{Products: map[int64]int64{}}
 
 	file, err := os.Open(path)
 	if err != nil {
@@ -42,12 +43,17 @@ func main() {
 	defer file.Close()
 
 	// pass consumer ke Stream
-	err = parser.Stream(file, &preview, &countEvents, &topK)
+	err = parser.Stream(file, &preview, &countEvents, &topK, &topProduct)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	event, freq, err := topK.GetK()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	productId, productFreq, err := topProduct.GetK()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -75,7 +81,11 @@ func main() {
 	fmt.Println()
 	fmt.Println()
 
-	// fmt.Println("1 - Most Viewed Products")
+	fmt.Println("1 - Most Viewed Products")
+	fmt.Printf("Product Id       : %d\n", productId)
+	fmt.Printf("Frequency        : %d\n", productFreq)
+	fmt.Println()
+	fmt.Println()
 
 	util.PrintMemUsage()
 }
