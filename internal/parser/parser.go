@@ -4,25 +4,16 @@ import (
 	"encoding/csv"
 	"fmt"
 	"io"
-	"os"
 	"strconv"
 
 	"github.com/ahmaruff/event-stream-dsa/internal/model"
 )
 
-func ParseFile(path string, processor func(model.Event) error) error {
-
-	file, err := os.Open(path)
-	if err != nil {
-		return fmt.Errorf("failed to open file %s: %w", path, err)
-	}
-
-	defer file.Close()
-
-	return Stream(file, processor)
+type EventConsumer interface {
+	Consume(model.Event) error
 }
 
-func Stream(r io.Reader, processor func(model.Event) error) error {
+func Stream(r io.Reader, consumers ...EventConsumer) error {
 	reader := csv.NewReader(r)
 
 	// skip header
@@ -30,7 +21,7 @@ func Stream(r io.Reader, processor func(model.Event) error) error {
 		return err
 	}
 
-	for {
+	for i := 1; ; i++ {
 		record, err := reader.Read()
 
 		if err == io.EOF {
@@ -46,14 +37,15 @@ func Stream(r io.Reader, processor func(model.Event) error) error {
 			return err
 		}
 
-		if err := processor(event); err != nil {
-			return err
+		// DISPATCH
+		for _, c := range consumers {
+			if err := c.Consume(event); err != nil {
+				return fmt.Errorf("consumer error at line %d: %w", i, err)
+			}
 		}
-
 	}
 
 	return nil
-
 }
 
 func ParseRecord(record []string) (model.Event, error) {
