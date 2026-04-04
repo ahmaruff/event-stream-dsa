@@ -32,14 +32,15 @@ func main() {
 	// consumers init
 	preview := &preview.Preview{Limit: 3}
 	countEvents := &CountEvents{Counts: 0}
-	topK := &topk.TopK{Events: make(map[string]int)}
-	topProduct := &topk.TopProduct{Products: make(map[int64]int64)}
+
+	mostView := &topk.TopProduct{Event: "view", Products: make(map[int64]int64)}
+	mostTrx := &topk.TopProduct{Event: "transaction", Products: make(map[int64]int64)}
 
 	consumers := []parser.EventConsumer{
 		preview,
 		countEvents,
-		topK,
-		topProduct,
+		mostView,
+		mostTrx,
 	}
 
 	file, err := os.Open(path)
@@ -55,12 +56,12 @@ func main() {
 		log.Fatal(err)
 	}
 
-	event, freq, err := topK.GetK()
+	vPId, vPFreq, err := mostView.GetK()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	productId, productFreq, err := topProduct.GetK()
+	tPId, tPFreq, err := mostTrx.GetK()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -75,22 +76,22 @@ func main() {
 	preview.Print()
 	fmt.Println("-----------------------------------")
 
-	fmt.Println("0 - Stream Processing")
+	fmt.Println("Stream Processing")
 	fmt.Printf("Events processed : %d\n", countEvents.Counts)
 	fmt.Printf("Elapsed time     : %.2f s\n", elapsed.Seconds())
 	fmt.Printf("Throughput       : %.0f events/sec\n", eps)
 	fmt.Println()
 	fmt.Println()
 
-	fmt.Println("0a - Top Event")
-	fmt.Printf("Top Event        : %s\n", event)
-	fmt.Printf("Frequency        : %d\n", freq)
+	fmt.Println("1 - Most Viewed Products")
+	fmt.Printf("Product Id       : %d\n", vPId)
+	fmt.Printf("Frequency        : %d\n", vPFreq)
 	fmt.Println()
 	fmt.Println()
 
-	fmt.Println("1 - Most Viewed Products")
-	fmt.Printf("Product Id       : %d\n", productId)
-	fmt.Printf("Frequency        : %d\n", productFreq)
+	fmt.Println("2 - Most Purchased Products")
+	fmt.Printf("Product Id       : %d\n", tPId)
+	fmt.Printf("Frequency        : %d\n", tPFreq)
 	fmt.Println()
 	fmt.Println()
 
