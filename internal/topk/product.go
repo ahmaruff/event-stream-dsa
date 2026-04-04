@@ -6,9 +6,9 @@ import (
 	"github.com/ahmaruff/event-stream-dsa/internal/model"
 )
 
-type TopProduct struct {
-	Event    string
-	Products map[int64]int64
+type Product struct {
+	Event string
+	Items map[int64]int64
 }
 
 type pair struct {
@@ -16,20 +16,20 @@ type pair struct {
 	val int64
 }
 
-func (t *TopProduct) Consume(e model.Event) error {
-	if t.Products == nil {
-		t.Products = make(map[int64]int64)
+func (p *Product) Consume(e model.Event) error {
+	if p.Items == nil {
+		p.Items = make(map[int64]int64)
 	}
 
-	if e.Event == t.Event {
-		t.Products[e.ItemId]++
+	if e.Event == p.Event {
+		p.Items[e.ItemId]++
 	}
 
 	return nil
 }
 
-func (t *TopProduct) GetK() (int64, int64, error) {
-	cnt := len(t.Products)
+func (p *Product) GetK() (int64, int64, error) {
+	cnt := len(p.Items)
 
 	if cnt < 1 {
 		return 0, 0, fmt.Errorf("Product is empty")
@@ -37,57 +37,57 @@ func (t *TopProduct) GetK() (int64, int64, error) {
 
 	items := make([]pair, 0, cnt)
 
-	for k, v := range t.Products {
+	for k, v := range p.Items {
 		items = append(items, pair{key: k, val: v})
 	}
 
 	if cnt > 1 {
-		t.quickSort(items, 0, cnt-1)
+		p.quickSort(items, 0, cnt-1)
 	}
 
 	top := items[0]
 	return top.key, top.val, nil
 }
 
-func (t *TopProduct) quickSort(arr []pair, low, high int) {
+func (p *Product) quickSort(arr []pair, low, high int) {
 	if low < high {
-		p := t.partition(arr, low, high)
+		pivot := p.partition(arr, low, high)
 
-		t.quickSort(arr, low, p-1)
-		t.quickSort(arr, p+1, high)
+		p.quickSort(arr, low, pivot-1)
+		p.quickSort(arr, pivot+1, high)
 	}
 }
 
-func (t *TopProduct) partition(items []pair, low, high int) int {
+func (p *Product) partition(items []pair, low, high int) int {
 	// 1. Cari index median
-	pIdx := t.getPivotIndex(items, low, high)
+	pIdx := p.getPivotIndex(items, low, high)
 	pivotVal := items[pIdx].val
 
 	// 2. TUKER pivot ke ujung kanan (index high) biar aman gak keganggu loop
-	t.swap(items, pIdx, high)
+	p.swap(items, pIdx, high)
 
 	// 3. i adalah batas "wilayah" angka yang lebih gede
 	i := low - 1
 	for j := low; j < high; j++ {
 		if items[j].val > pivotVal {
 			i++
-			t.swap(items, i, j)
+			p.swap(items, i, j)
 		}
 	}
 
 	// 4. Balikin pivot dari ujung (high) ke posisi tengah (i+1)
-	t.swap(items, i+1, high)
+	p.swap(items, i+1, high)
 
 	// return index posisi asli si pivot sekarang
 	return i + 1
 }
 
-func (t *TopProduct) swap(items []pair, i, j int) {
+func (p *Product) swap(items []pair, i, j int) {
 	items[i], items[j] = items[j], items[i]
 
 }
 
-func (t *TopProduct) getPivotIndex(items []pair, low, high int) int {
+func (p *Product) getPivotIndex(items []pair, low, high int) int {
 	mid := low + (high-low)/2
 
 	a := items[low].val

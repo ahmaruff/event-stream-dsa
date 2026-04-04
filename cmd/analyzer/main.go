@@ -33,8 +33,8 @@ func main() {
 	preview := &preview.Preview{Limit: 3}
 	countEvents := &CountEvents{Counts: 0}
 
-	mostView := &topk.TopProduct{Event: "view", Products: make(map[int64]int64)}
-	mostTrx := &topk.TopProduct{Event: "transaction", Products: make(map[int64]int64)}
+	mostView := &topk.Product{Event: "view", Items: make(map[int64]int64)}
+	mostTrx := &topk.Product{Event: "transaction", Items: make(map[int64]int64)}
 
 	consumers := []parser.EventConsumer{
 		preview,

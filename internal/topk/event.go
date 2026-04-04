@@ -6,17 +6,17 @@ import (
 	"github.com/ahmaruff/event-stream-dsa/internal/model"
 )
 
-type TopK struct {
-	Events map[string]int
+type Events struct {
+	Items map[string]int
 }
 
-func (t *TopK) Consume(e model.Event) error {
-	t.Events[e.Event]++
+func (events *Events) Consume(e model.Event) error {
+	events.Items[e.Event]++
 	return nil
 }
 
-func (t *TopK) GetK() (string, int, error) {
-	cnt := len(t.Events)
+func (events *Events) GetK() (string, int, error) {
+	cnt := len(events.Items)
 	if cnt < 1 {
 		return "", 0, fmt.Errorf("Event is empty")
 	}
@@ -28,7 +28,7 @@ func (t *TopK) GetK() (string, int, error) {
 	}
 
 	items := make([]pair, 0, cnt)
-	for k, v := range t.Events {
+	for k, v := range events.Items {
 		items = append(items, pair{k, v})
 	}
 
