@@ -7,6 +7,7 @@ import (
 )
 
 type TopProduct struct {
+	Event    string
 	Products map[int64]int64
 }
 
@@ -20,7 +21,7 @@ func (t *TopProduct) Consume(e model.Event) error {
 		t.Products = make(map[int64]int64)
 	}
 
-	if e.Event == "view" {
+	if e.Event == t.Event {
 		t.Products[e.ItemId]++
 	}
 
